@@ -78,12 +78,15 @@ class LoadingButton @JvmOverloads constructor(
             paintClicked.setColor(resources.getColor(R.color.colorAccent))
             canvas.drawRect(0f, 0f, (widthSize*progress/100).toFloat(), heightSize.toFloat(), paintClicked)
             invalidate()
+
         }
         if (buttonState == ButtonState.Completed){
             valueAnimator.cancel()
             isClickable = true
             invalidate()
+
         }
+
 
 
         canvas.drawText(
@@ -99,9 +102,10 @@ class LoadingButton @JvmOverloads constructor(
     override fun performClick(): Boolean {
         super.performClick()
         //Once the button is clicked, we make non-clickable until the state become completed
-        //isClickable = false
+        isClickable = false
         valueAnimator.start()
         buttonState = ButtonState.Clicked
+        invalidate()
         return  true
     }
 
