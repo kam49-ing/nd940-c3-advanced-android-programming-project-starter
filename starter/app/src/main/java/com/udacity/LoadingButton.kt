@@ -22,6 +22,9 @@ class LoadingButton @JvmOverloads constructor(
     private var progress = 0.0
 
     private var rect = Rect()
+    val paint = Paint()
+    val paintText = Paint()
+    val paintClicked = Paint()
 
     private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
 
@@ -59,21 +62,21 @@ class LoadingButton @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        val paint = Paint()
+
         rect = canvas?.getClipBounds()!!
         paint.setColor(resources.getColor(R.color.colorPrimary))
         canvas.drawRect(rect, paint).apply {
             textAlignment = TEXT_ALIGNMENT_CENTER
         }
-        invalidate()
 
-        val paintText = Paint().apply {
+
+        paintText.apply {
             color = resources.getColor(R.color.white)
             textAlignment = TEXT_ALIGNMENT_CENTER
             textSize = 70f
         }
 
-        val paintClicked = Paint()
+
         if (buttonState == ButtonState.Clicked){
             paintClicked.setColor(resources.getColor(R.color.colorAccent))
             canvas.drawRect(0f, 0f, (widthSize*progress/100).toFloat(), heightSize.toFloat(), paintClicked)
@@ -84,7 +87,6 @@ class LoadingButton @JvmOverloads constructor(
             valueAnimator.cancel()
             isClickable = true
             invalidate()
-
         }
 
 
@@ -95,7 +97,6 @@ class LoadingButton @JvmOverloads constructor(
             (heightSize/2).toFloat(),
             paintText
         )
-        invalidate()
     }
 
     //action to do when the button is clicked
@@ -105,7 +106,6 @@ class LoadingButton @JvmOverloads constructor(
         isClickable = false
         valueAnimator.start()
         buttonState = ButtonState.Clicked
-        invalidate()
         return  true
     }
 
@@ -118,7 +118,6 @@ class LoadingButton @JvmOverloads constructor(
     fun downloadFinished(){
         //Once download is completed, the button should be clickable again
         buttonState = ButtonState.Completed
-        invalidate()
     }
 
     /*
@@ -130,6 +129,5 @@ class LoadingButton @JvmOverloads constructor(
         //we show a message then putting the button clickable again
         Toast.makeText(context, "Please select an item", Toast.LENGTH_SHORT).show()
         buttonState = ButtonState.Completed
-        invalidate()
     }
 }

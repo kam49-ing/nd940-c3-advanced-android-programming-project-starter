@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -34,11 +35,11 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         custom_button.setOnClickListener {
+            //downloading if an item is selected
             if(radio_group.checkedRadioButtonId != -1) {
                 download()
-            }
-            else{
-                custom_button.selectItem()
+            } else{
+                custom_button.selectItem() //showing a message
             }
         }
     }
@@ -63,66 +64,64 @@ class MainActivity : AppCompatActivity() {
             radio_retrofit.id -> URL_RETROFIT
             else -> URL
         }
+        CoroutineScope( Dispatchers.IO).launch {
+            val request =
+                DownloadManager.Request(Uri.parse(url))
+                    .setTitle(getString(R.string.app_name))
+                    .setDescription(getString(R.string.app_description))
+                    .setRequiresCharging(false)
+                    .setAllowedOverMetered(true)
+                    .setAllowedOverRoaming(true)
 
-        val request =
-            DownloadManager.Request(Uri.parse(url))
-                .setTitle(getString(R.string.app_name))
-                .setDescription(getString(R.string.app_description))
-                .setRequiresCharging(false)
-                .setAllowedOverMetered(true)
-                .setAllowedOverRoaming(true)
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            downloadID =
+                downloadManager.enqueue(request)// enqueue puts the download request in the queue.
+            var donwloadFinished = false
+            while (!donwloadFinished) {
+                val cursor =
+                    downloadManager.query(DownloadManager.Query().setFilterById(downloadID));
+                while (cursor.moveToNext()) {
+                    val status =
+                        cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                    when (status) {
+                        DownloadManager.STATUS_FAILED -> {
+                            Toast.makeText(
+                                applicationContext,
+                                "Download failed",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            Log.i("applicationContext", "download failed")
+                            donwloadFinished = true
+                        }
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            Dispatchers.Main{
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Download succeed",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            donwloadFinished = true
+                        }
+                        DownloadManager.STATUS_PENDING -> {
 
-        val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        downloadID =
-            downloadManager.enqueue(request)// enqueue puts the download request in the queue.
-        var donwloadFinished = false
-        while (!donwloadFinished) {
-            val cursor =
-                downloadManager.query(DownloadManager.Query().setFilterById(downloadID));
-            while (cursor.moveToNext()) {
-                val status =
-                    cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
-                when (status) {
-                    DownloadManager.STATUS_FAILED -> {
-                        Toast.makeText(
-                            applicationContext,
-                            "Download failed",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        Log.i("applicationContext", "download failed")
-                        donwloadFinished = true
-                    }
-                    DownloadManager.STATUS_SUCCESSFUL -> {
-                        Toast.makeText(
-                            applicationContext,
-                            "Download succeed",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        Log.i("applicationContext", "download succeed")
-                        donwloadFinished = true
-                    }
-                    DownloadManager.STATUS_PENDING -> {
-                        Log.i(
-                            "applicationContext",
-                            "Download pending"
-                        )
-                    }
-                    DownloadManager.STATUS_RUNNING -> {
-                        Log.i(
-                            "applicationContext",
-                            "Download runing"
-                        )
-                    }
-                    DownloadManager.STATUS_PAUSED -> {
-                        Toast.makeText(
-                            applicationContext,
-                            "Download paused",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        Log.i("applicationContext", "download paused")
+                        }
+                        DownloadManager.STATUS_RUNNING -> {
+
+                        }
+                        DownloadManager.STATUS_PAUSED -> {
+                            Dispatchers.Main {
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Download paused",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 }
             }
+
         }
     }
 
