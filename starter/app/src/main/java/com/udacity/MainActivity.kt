@@ -2,22 +2,31 @@ package com.udacity
 
 import android.annotation.SuppressLint
 import android.app.DownloadManager
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.*
+import kotlin.properties.Delegates
 
+private val NOTIFICATION_ID = 0
+private val REQUEST_CODE = 0
+private val FLAGS = 0
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,18 +35,37 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var pendingIntent: PendingIntent
     private lateinit var action: NotificationCompat.Action
+    private var status by Delegates.notNull<Int>()
+    private var downloadedFile by Delegates.notNull<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        notificationManager = ContextCompat.getSystemService(
+            applicationContext,
+            NotificationManager::class.java
+        ) as NotificationManager
+
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
+        createChannel(
+            getString(R.string.download_notification_channel_id),
+            getString(R.string.download_notification_channel_name)
+        )
         custom_button.setOnClickListener {
+            //canceling all previous notifications
+            notificationManager.cancel()
             //downloading if an item is selected
             if(radio_group.checkedRadioButtonId != -1) {
                 download()
+                downloadedFile = when(radio_group.checkedRadioButtonId){
+                    radio_glide.id-> getString(R.string.glide_url)
+                    radio_project.id -> getString(R.string.project_url)
+                    radio_retrofit.id -> getString(R.string.retrofit_url)
+                    else -> "No project has been selected"
+                }
             } else{
                 custom_button.selectItem() //showing a message
             }
@@ -48,10 +76,56 @@ class MainActivity : AppCompatActivity() {
         @SuppressLint("Range")
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            val detailIntent = Intent(context?.applicationContext, DetailActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                putExtra("status", status)
+                putExtra("downloadedFile", downloadedFile)
+            }
+
+            val detailPendingIntent:PendingIntent =
+                PendingIntent.getActivity(context?.applicationContext, REQUEST_CODE, detailIntent, PendingIntent.FLAG_ONE_SHOT)
+            action = NotificationCompat.Action(R.drawable.common_google_signin_btn_icon_light, "view", detailPendingIntent)
+            val builder =
+                context?.applicationContext?.let {
+                    NotificationCompat.Builder(it, getString(R.string.download_notification_channel_id))
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setContentText(getString(R.string.notification_description))
+                        .setContentTitle(getString(R.string.notification_title))
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setContentIntent(detailPendingIntent)
+                        .setAutoCancel(true)
+                        .addAction(action)
+                }
             if(id == downloadID){
                 custom_button.downloadFinished()
+                with(context?.applicationContext?.let { NotificationManagerCompat.from(it) }){
+                    builder?.build()?.let {
+                        this!!.notify(
+                            NOTIFICATION_ID,
+                            it
+                        )
+                    }
+                }
             }
         }
+    }
+
+    private fun createChannel(channel_notification_id:String, channel_notification_name:String){
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val notificationChannel = NotificationChannel(
+                    channel_notification_id,
+                    channel_notification_name,
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationChannel.enableVibration(true)
+                notificationChannel.enableLights(true)
+                notificationChannel.setShowBadge(true)
+                notificationChannel.lightColor = Color.RED
+                notificationChannel.description = getString(R.string.notification_description)
+                val notificationManager = getSystemService(NotificationManager::class.java)
+                notificationManager.createNotificationChannel(notificationChannel)
+            }
     }
 
     @SuppressLint("Range")
@@ -81,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                 val cursor =
                     downloadManager.query(DownloadManager.Query().setFilterById(downloadID));
                 while (cursor.moveToNext()) {
-                    val status =
+                    status =
                         cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
                     when (status) {
                         DownloadManager.STATUS_FAILED -> {
@@ -123,6 +197,10 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+    }
+
+    fun NotificationManager.cancel(){
+        cancelAll()
     }
 
     companion object {

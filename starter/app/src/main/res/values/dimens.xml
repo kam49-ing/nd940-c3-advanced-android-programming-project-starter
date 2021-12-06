@@ -1,5 +1,10 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="clipRectLeft">0dp</dimen>
+    <dimen name="clipRectTop">0dp</dimen>
+    <dimen name="clipRectRight">120dp</dimen>
+    <dimen name="clipRectBottom">60dp</dimen>
 
+    <dimen name ="circleRadius">60dp</dimen>
     <dimen name="default_text_size">20sp</dimen>
 </resources>

@@ -1,7 +1,6 @@
 package com.udacity
 
-import android.animation.AnimatorInflater
-import android.animation.ValueAnimator
+import android.animation.*
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -47,6 +46,18 @@ class LoadingButton @JvmOverloads constructor(
 
     }
 
+    private fun ObjectAnimator.disableViewDuringAnimation(view: View) {
+        addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                view.isEnabled = false
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                view.isEnabled = true
+            }
+        })
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val minw: Int = paddingLeft + paddingRight + suggestedMinimumWidth
         val w: Int = resolveSizeAndState(minw, widthMeasureSpec, 1)
@@ -64,7 +75,8 @@ class LoadingButton @JvmOverloads constructor(
         super.onDraw(canvas)
 
         rect = canvas?.getClipBounds()!!
-        paint.setColor(resources.getColor(R.color.colorPrimary))
+        paint.setColor(resources.getColor(R.color.colorPrimary, context.theme))
+        canvas.clipRect(rect.left, rect.bottom, rect.right, rect.top)
         canvas.drawRect(rect, paint).apply {
             textAlignment = TEXT_ALIGNMENT_CENTER
         }
@@ -85,7 +97,6 @@ class LoadingButton @JvmOverloads constructor(
         }
         if (buttonState == ButtonState.Completed){
             valueAnimator.cancel()
-            isClickable = true
             invalidate()
         }
 
@@ -103,7 +114,6 @@ class LoadingButton @JvmOverloads constructor(
     override fun performClick(): Boolean {
         super.performClick()
         //Once the button is clicked, we make non-clickable until the state become completed
-        isClickable = false
         valueAnimator.start()
         buttonState = ButtonState.Clicked
         return  true

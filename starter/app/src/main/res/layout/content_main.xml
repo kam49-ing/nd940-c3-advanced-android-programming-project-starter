@@ -11,6 +11,15 @@
         tools:context=".MainActivity"
         tools:showIn="@layout/activity_main">
 
+        <com.udacity.DownloadImage
+            android:id="@+id/download_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <RadioGroup
             android:id="@+id/radio_group"
             android:layout_width="0dp"
@@ -18,7 +27,7 @@
             app:layout_constraintBottom_toTopOf="@+id/custom_button"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/download_image">
 
             <RadioButton
                 android:id="@+id/radio_glide"
