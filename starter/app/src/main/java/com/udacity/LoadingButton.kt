@@ -115,7 +115,7 @@ class LoadingButton @JvmOverloads constructor(
         super.performClick()
         //Once the button is clicked, we make non-clickable until the state become completed
         valueAnimator.start()
-
+        valueAnimator.disableViewDuringAnimation(findViewById(R.id.custom_button))
         buttonState = ButtonState.Clicked
         return  true
     }

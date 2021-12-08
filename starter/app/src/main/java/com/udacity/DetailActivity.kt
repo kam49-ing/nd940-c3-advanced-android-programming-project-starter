@@ -38,9 +38,14 @@ class DetailActivity : AppCompatActivity() {
             startActivity(mainActivityIntent)
         }
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+
         val motionLayout = binding.detail.motionLayout
-        //motionLayout.transitionToEnd()
-        //motionLayout.transitionToStart()
+        motionLayout.transitionToStart()
+        motionLayout.transitionToEnd()
         setSupportActionBar(toolbar)
     }
 

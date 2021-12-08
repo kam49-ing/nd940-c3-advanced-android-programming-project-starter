@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
                                 Toast.makeText(
                                     applicationContext,
                                     "Download succeed",
-                                    Toast.LENGTH_LONG
+                                    Toast.LENGTH_SHORT
                                 ).show()
                             }
                             donwloadFinished = true
