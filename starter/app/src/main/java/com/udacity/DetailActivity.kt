@@ -37,6 +37,10 @@ class DetailActivity : AppCompatActivity() {
             val mainActivityIntent = Intent(this, MainActivity::class.java)
             startActivity(mainActivityIntent)
         }
+
+        val motionLayout = binding.detail.motionLayout
+        //motionLayout.transitionToEnd()
+        //motionLayout.transitionToStart()
         setSupportActionBar(toolbar)
     }
 

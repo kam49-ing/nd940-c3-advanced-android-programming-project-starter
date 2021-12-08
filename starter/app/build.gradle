@@ -24,7 +24,7 @@ android {
     buildFeatures{
         dataBinding = true
     }
-    buildToolsVersion '31.0.0'
+    buildToolsVersion '30.0.2'
 }
 
 dependencies {
